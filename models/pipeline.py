@@ -7,7 +7,7 @@ from transformers import AutoTokenizer
 import torch
 
 MODEL_NAME = "bert-base-uncased"
-CHECKPOINT_PATH = Path(__file__).resolve().parent / "mon_checkpoint (1).pth"
+CHECKPOINT_PATH = Path(__file__).resolve().parent / "mon_checkpoint.pth"
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 LABEL_MAP = {0: "negative", 1: "neutral", 2: "positive"}
 
