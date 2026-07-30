@@ -13,7 +13,7 @@ Dependencies are managed with `uv` (see `uv.lock`); Python `>=3.12` is required 
 ```bash
 uv sync                          # install dependencies into .venv
 uv run uvicorn api:app --reload  # start the FastAPI backend (must run from repo root)
-uv run python app.py             # start the standalone Gradio demo stub
+uv run python app.py             # start the Gradio UI (requires the backend above to be running)
 uv run python -m models.asr      # run ASR module's own smoke test (transcribes models/sample.mp3)
 uv run python -m preprocessing.audio_preprocessing  # smoke-test audio preprocessing
 ```
@@ -29,7 +29,7 @@ Request flow: `api.py` → `models/pipeline.py::predict()` → `preprocessing/au
 - `models/asr.py` — loads `jonatasgrosman/wav2vec2-large-xlsr-53-french` (Wav2Vec2ForCTC) at import time and exposes `transcribe_audio(waveform, sample_rate)`.
 - `models/sentiment.py` — `BertClassifier` (bert-base-uncased + linear head, 3 classes) and `predict(text, model, tokenizer, device)`. Has its own `if __name__ == "__main__"` smoke test using a 2-class `label_map`, inconsistent with the pipeline's 3-class map — don't assume the two are in sync.
 - `preprocessing/audio_preprocessing.py` — `load_audio` (torchaudio), `convert_to_mono`, `audio_resampling` (→16kHz), `normalize_audio`, and the composed `preprocess_audio()` used by both `asr.py`'s smoke test and `pipeline.py`.
-- `app.py` — a standalone Gradio stub (`greet()`) unrelated to the speech/sentiment pipeline; not wired into `api.py` or `models/pipeline.py`.
+- `app.py` — Gradio UI that calls the FastAPI backend's `POST /predict` over HTTP (via `httpx`), so the API server must be running first. Backend URL defaults to `http://127.0.0.1:8000`, overridable with env var `API_URL`.
 
 ### Model checkpoint
 

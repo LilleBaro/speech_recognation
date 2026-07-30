@@ -18,7 +18,7 @@ HF_REPO_ID = os.environ.get("HF_REPO_ID", "LilleBaro/fr_sentiment_analysis")
 
 
 def predict(audio_path):
-    """Pipeline complet : Audio -> Prétraitement -> ASR -> Sentiment"""
+    """Complete pipeline  : Audio -> Preprocessing -> ASR -> Prediction"""
     audio_path = Path(audio_path)
     if not audio_path.exists():
         raise FileNotFoundError(f"audio file not found: {audio_path}")

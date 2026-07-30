@@ -4,6 +4,7 @@ from fastapi import FastAPI, UploadFile, File, HTTPException, status
 from fastapi.responses import JSONResponse
 
 from models.pipeline import predict as pipeline_predict
+from exceptions import AudioProcessingError
 
 ROOT_DIR = Path(__file__).resolve().parent
 UPLOAD_DIR = ROOT_DIR / "uploads"
@@ -30,6 +31,19 @@ async def predict(file: UploadFile = File(...)):
     upload_path = UPLOAD_DIR / filename
     try:
         content = await file.read()
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"unable to read upload: {exc}"
+        ) from exc
+
+    if not content:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="empty file"
+        )
+
+    try:
         upload_path.write_bytes(content)
     except Exception as exc:
         raise HTTPException(
@@ -48,6 +62,11 @@ async def predict(file: UploadFile = File(...)):
     except FileNotFoundError as exc:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(exc)
+        ) from exc
+    except AudioProcessingError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(exc)
         ) from exc
     except Exception as exc:
