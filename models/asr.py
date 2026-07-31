@@ -10,15 +10,18 @@ model_name = "jonatasgrosman/wav2vec2-large-xlsr-53-french"
 model = Wav2Vec2ForCTC.from_pretrained(model_name)
 processor = Wav2Vec2Processor.from_pretrained(model_name)
 
-def transcribe_audio(waveform, sample_rate):
-    
+def transcribe_audio(waveform, sample_rate, device=None):
+    if device is None:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
     if waveform.dim() > 1 and waveform.shape[0] == 1:
         waveform = waveform.squeeze(0) # Remove the channel dimension if it's 1
-    input_values = processor(waveform, sampling_rate=sample_rate, return_tensors="pt").input_values
+    input_values = processor(waveform, sampling_rate=sample_rate, return_tensors="pt").input_values.to(device)
+    model.to(device)
     with torch.no_grad():
         logits = model(input_values).logits
     predicted_ids = torch.argmax(logits, dim=-1)
-    transcription = processor.batch_decode(predicted_ids)
+    transcription = processor.batch_decode(predicted_ids.cpu())
     return transcription[0]
 def main():
     audio_file_path = PROJECT_ROOT / "models" / "sample.mp3"
